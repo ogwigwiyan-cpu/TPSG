@@ -1,3 +1,5 @@
+export * from './geography'
+
 export type DecisionEligibility =
   | 'REGISTERED_CITIZEN'
   | 'WARD_RESIDENT'

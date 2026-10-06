@@ -24,6 +24,12 @@ type ProfileFormState = {
   age_band: string
   gender: string
   employment_status: string
+  country_id: string
+  province_id: string
+  municipality_id: string
+  ward_id: string
+  community_id: string
+  street_locality_id: string
   province: string
   municipality: string
   ward: string
@@ -45,6 +51,12 @@ const defaultProfileState: ProfileFormState = {
   age_band: '',
   gender: 'NOT_PROVIDED',
   employment_status: 'NOT_PROVIDED',
+  country_id: '',
+  province_id: '',
+  municipality_id: '',
+  ward_id: '',
+  community_id: '',
+  street_locality_id: '',
   province: '',
   municipality: '',
   ward: '',
@@ -97,6 +109,12 @@ export default function OnboardingPage() {
         age_band: profileData?.age_band ?? '',
         gender: profileData?.gender ?? 'NOT_PROVIDED',
         employment_status: profileData?.employment_status ?? 'NOT_PROVIDED',
+        country_id: profileData?.country_id ?? '',
+        province_id: profileData?.province_id ?? '',
+        municipality_id: profileData?.municipality_id ?? '',
+        ward_id: profileData?.ward_id ?? '',
+        community_id: profileData?.community_id ?? '',
+        street_locality_id: profileData?.street_locality_id ?? '',
         province: profileData?.province ?? '',
         municipality: profileData?.municipality ?? '',
         ward: profileData?.ward ?? '',
@@ -193,6 +211,12 @@ export default function OnboardingPage() {
       age_band: profile.age_band || null,
       gender: profile.gender || 'NOT_PROVIDED',
       employment_status: profile.employment_status || 'NOT_PROVIDED',
+      country_id: profile.country_id || null,
+      province_id: profile.province_id || null,
+      municipality_id: profile.municipality_id || null,
+      ward_id: profile.ward_id || null,
+      community_id: profile.community_id || null,
+      street_locality_id: profile.street_locality_id || null,
       province: profile.province.trim() || null,
       municipality: profile.municipality.trim() || null,
       ward: profile.ward.trim() || null,
@@ -359,6 +383,44 @@ export default function OnboardingPage() {
             <div className="md:col-span-2">
               <label htmlFor="street_locality" className="mb-2 block text-sm font-medium text-slate-200">Street / Locality</label>
               <input id="street_locality" value={profile.street_locality} onChange={(event) => updateField('street_locality', event.target.value)} className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-3 text-slate-100" placeholder="Private street or locality" />
+            </div>
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+          <h2 className="text-xl font-semibold text-white">Structured geography foundation</h2>
+          <p className="mt-1 text-sm text-slate-400">The profile can carry private geographic association identifiers once authoritative reference data is available. Exact residence details remain private and are not exposed publicly.</p>
+
+          <div className="mt-5 grid gap-5 md:grid-cols-2">
+            <div>
+              <label htmlFor="country_id" className="mb-2 block text-sm font-medium text-slate-200">Country reference</label>
+              <select id="country_id" value={profile.country_id} disabled className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-3 text-slate-400">
+                <option value="">Authoritative geographic data not yet loaded</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor="province_id" className="mb-2 block text-sm font-medium text-slate-200">Province reference</label>
+              <select id="province_id" value={profile.province_id} disabled className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-3 text-slate-400">
+                <option value="">Select a province when reference data is available</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor="municipality_id" className="mb-2 block text-sm font-medium text-slate-200">Municipality reference</label>
+              <select id="municipality_id" value={profile.municipality_id} disabled className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-3 text-slate-400">
+                <option value="">Select a municipality after province selection</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor="ward_id" className="mb-2 block text-sm font-medium text-slate-200">Ward reference</label>
+              <select id="ward_id" value={profile.ward_id} disabled className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-3 text-slate-400">
+                <option value="">Select a ward after municipality selection</option>
+              </select>
+            </div>
+            <div className="md:col-span-2">
+              <label htmlFor="community_id" className="mb-2 block text-sm font-medium text-slate-200">Community / locality reference</label>
+              <select id="community_id" value={profile.community_id} disabled className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-3 text-slate-400">
+                <option value="">Select a community once the relevant geographic level is available</option>
+              </select>
             </div>
           </div>
         </section>
