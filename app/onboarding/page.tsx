@@ -9,8 +9,9 @@ import {
   GENDER_OPTIONS,
   LANGUAGE_OPTIONS,
   PRIVACY_LEVELS,
+  canCompleteOnboarding,
   formatCapabilityLabel,
-  getOnboardingState,
+  normalizeAcknowledgementValue,
   validateProfileInput,
 } from '@/lib/auth'
 import { getSupabaseBrowserClient } from '@/lib/supabase/client'
@@ -164,6 +165,13 @@ export default function OnboardingPage() {
       return
     }
 
+    const explicitAcknowledgement = normalizeAcknowledgementValue(profile.accepted_at)
+
+    if (complete && !explicitAcknowledgement) {
+      setStatus({ type: 'error', text: 'You must explicitly accept the privacy acknowledgement before completing onboarding.' })
+      return
+    }
+
     const { data: userData } = await client.auth.getUser()
     const user = userData.user
 
@@ -175,7 +183,7 @@ export default function OnboardingPage() {
     setSaving(true)
     setStatus(null)
 
-    const nextState = complete ? 'COMPLETED' : getOnboardingState(profile)
+    const nextState = complete ? 'COMPLETED' : 'IN_PROGRESS'
     const profilePayload = {
       user_id: user.id,
       first_name: profile.first_name.trim(),
@@ -195,8 +203,14 @@ export default function OnboardingPage() {
       profile_visibility: 'PRIVATE',
       onboarding_state: nextState,
       accepted_policy_version: profile.accepted_policy_version || '2026-private-profile-v1',
-      accepted_at: profile.accepted_at || new Date().toISOString(),
+      accepted_at: explicitAcknowledgement,
       updated_at: new Date().toISOString(),
+    }
+
+    if (complete && !canCompleteOnboarding(profilePayload)) {
+      setSaving(false)
+      setStatus({ type: 'error', text: 'Onboarding cannot be completed until required personal details and the acknowledgement are provided.' })
+      return
     }
 
     const { error: profileError } = await client.from('profiles').upsert(profilePayload, { onConflict: 'user_id' })

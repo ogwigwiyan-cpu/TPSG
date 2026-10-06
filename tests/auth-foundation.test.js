@@ -3,7 +3,10 @@ import assert from 'node:assert/strict'
 
 import {
   buildProfileRecord,
+  canCompleteOnboarding,
+  getOnboardingState,
   isAuthenticatedSession,
+  normalizeAcknowledgementValue,
   validateRegistrationInput,
 } from '../lib/auth.js'
 
@@ -48,6 +51,65 @@ test('profiles keep user ownership scoped to the authenticated identity', () => 
     surname: 'Doe',
     updated_at: profile.updated_at,
   })
+})
+
+test('new profile starts in the not-started state', () => {
+  assert.equal(getOnboardingState({}), 'NOT_STARTED')
+  assert.equal(getOnboardingState({ onboarding_state: 'NOT_STARTED' }), 'NOT_STARTED')
+})
+
+test('user starts onboarding in progress rather than completed', () => {
+  const profile = { first_name: 'Tshepo', surname: 'Ramalapa' }
+
+  assert.equal(getOnboardingState(profile), 'IN_PROGRESS')
+  assert.notEqual(getOnboardingState(profile), 'COMPLETED')
+})
+
+test('save progress preserves in-progress state and prevents implicit acknowledgement', () => {
+  const profile = {
+    first_name: 'Tshepo',
+    surname: 'Ramalapa',
+    onboarding_state: 'IN_PROGRESS',
+    accepted_at: '',
+  }
+
+  assert.equal(getOnboardingState(profile), 'IN_PROGRESS')
+  assert.equal(normalizeAcknowledgementValue(profile.accepted_at), null)
+})
+
+test('explicit acknowledgement sets a persisted timestamp', () => {
+  const timestamp = '2026-10-06T06:50:00.000Z'
+
+  assert.equal(normalizeAcknowledgementValue(timestamp), timestamp)
+})
+
+test('unchecking acknowledgement clears the timestamp', () => {
+  assert.equal(normalizeAcknowledgementValue('   '), null)
+  assert.equal(normalizeAcknowledgementValue(''), null)
+})
+
+test('completion requires both profile data and an explicit acknowledgement', () => {
+  const incompleteProfile = { first_name: 'Tshepo', surname: 'Ramalapa' }
+  const completeProfile = {
+    first_name: 'Tshepo',
+    surname: 'Ramalapa',
+    accepted_at: '2026-10-06T06:50:00.000Z',
+  }
+
+  assert.equal(canCompleteOnboarding(incompleteProfile), false)
+  assert.equal(canCompleteOnboarding(completeProfile), true)
+})
+
+test('explicit completion state persists without inferring completion from fields', () => {
+  const profile = {
+    first_name: 'Tshepo',
+    surname: 'Ramalapa',
+    accepted_at: '2026-10-06T06:50:00.000Z',
+    onboarding_state: 'COMPLETED',
+  }
+
+  assert.equal(getOnboardingState(profile), 'COMPLETED')
+  assert.equal(getOnboardingState({ first_name: 'Tshepo', surname: 'Ramalapa' }), 'IN_PROGRESS')
 })
 
 test('authenticated and unauthenticated session states are distinguished explicitly', () => {
