@@ -5,13 +5,12 @@ test('TPSG foundation is initialized', () => {
   assert.equal('TPSG'.length, 4)
 })
 
-test('privacy-safe aggregation is represented in the domain model', () => {
-  const participation = {
-    privateParticipantId: 'participant-001',
+test('privacy-safe domain model supports scoped aggregation', () => {
+  const scopedAggregation = {
     scope: 'WARD',
-    participatedAt: '2026-10-06T00:00:00.000Z',
+    privacyProtected: true,
   }
 
-  assert.equal(participation.scope, 'WARD')
-  assert.match(participation.privateParticipantId, /^participant-/)
+  assert.equal(scopedAggregation.scope, 'WARD')
+  assert.equal(scopedAggregation.privacyProtected, true)
 })
