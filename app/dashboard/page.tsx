@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { DashboardAuth } from '@/components/dashboard-auth'
-import { getDisplayName } from '@/lib/auth'
+import { calculateProfileCompletion, getDisplayName } from '@/lib/auth'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
@@ -19,10 +19,15 @@ export default async function DashboardPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('first_name, surname')
+    .select('*')
     .eq('user_id', user.id)
     .maybeSingle()
 
+  if (!profile || profile.onboarding_state !== 'COMPLETED') {
+    redirect('/onboarding')
+  }
+
+  const completion = calculateProfileCompletion(profile)
   const displayName = getDisplayName(
     profile ?? {
       first_name: user.user_metadata?.first_name,
@@ -31,6 +36,13 @@ export default async function DashboardPage() {
     },
     'TPSG User'
   )
+
+  const sections = [
+    ['Personal information', profile.first_name && profile.surname ? '✓' : 'incomplete'],
+    ['Location', profile.province || profile.municipality || profile.ward ? '✓' : 'incomplete'],
+    ['How you can help', profile.profile_visibility ? '✓' : 'incomplete'],
+    ['Privacy', profile.privacy_level ? '✓' : 'incomplete'],
+  ]
 
   return (
     <div className="space-y-8">
@@ -49,7 +61,13 @@ export default async function DashboardPage() {
       </section>
 
       <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-        <h2 className="text-lg font-semibold text-white">Your TPSG account</h2>
+        <div className="flex items-center justify-between gap-4">
+          <h2 className="text-lg font-semibold text-white">Your TPSG account</h2>
+          <Link href="/onboarding" className="text-sm font-medium text-amber-300 hover:text-amber-200">
+            Edit profile
+          </Link>
+        </div>
+
         <div className="mt-4 space-y-2 text-sm text-slate-300">
           <p>
             <span className="font-medium text-white">Name:</span> {displayName}
@@ -57,14 +75,32 @@ export default async function DashboardPage() {
           <p>
             <span className="font-medium text-white">Status:</span> Authenticated
           </p>
+          <p>
+            <span className="font-medium text-white">Profile completion:</span> {completion.progressPercent}%
+          </p>
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+        <h2 className="text-lg font-semibold text-white">Your TPSG profile</h2>
+        <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-slate-800">
+          <div className="h-full rounded-full bg-amber-400" style={{ width: `${completion.progressPercent}%` }} />
+        </div>
+        <div className="mt-5 space-y-3">
+          {sections.map(([label, state]) => (
+            <div key={label} className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-200">
+              <span>{label}</span>
+              <span className={state === '✓' ? 'text-emerald-300' : 'text-amber-300'}>{state}</span>
+            </div>
+          ))}
         </div>
       </section>
 
       <div className="grid gap-4 md:grid-cols-3">
         {[
-          ['Tell us what you want', 'Future onboarding and account preferences are prepared for secure, private next steps.'],
-          ['How can you help?', 'Participation and contribution areas will be structured later without exposing private identity details.'],
-          ['Your community', 'Geographic and civic engagement flows are intentionally deferred to future builds.'],
+          ['Tell us what you want', 'This onboarding flow keeps personal identity, location, and capability information private while preparing future civic workflows.'],
+          ['How can you help?', 'Your declared capabilities are stored privately and can be used later for managed civic coordination.'],
+          ['Your community', 'Location context is recorded in a privacy-aware way without exposing exact address details.'],
         ].map(([title, description]) => (
           <article key={title} className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
             <h2 className="text-xl font-semibold text-white">{title}</h2>
