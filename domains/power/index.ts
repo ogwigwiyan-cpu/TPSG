@@ -1,1 +1,1 @@
-export * from './power/types'
+export * from './types'
