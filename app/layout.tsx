@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'TPSG - The People Shall Govern',
-  description: 'Permanent Civic Accountability & Participation System',
+  description: 'A privacy-safe civic participation and accountability foundation.',
 }
 
 export default function RootLayout({
@@ -13,7 +13,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-slate-950 text-slate-100 antialiased font-sans min-h-screen flex flex-col">
+      <body className="min-h-screen bg-slate-950 text-slate-100 antialiased">
         {children}
       </body>
     </html>
